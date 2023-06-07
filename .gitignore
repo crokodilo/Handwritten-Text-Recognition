@@ -1,5 +1,5 @@
 runs/*
-!runs/'size_(80, 900)_fine_tune_True'
+!runs/size_(80,900)_fine_tune_True
 *.tar
 checkpoints/
 __pycache__/

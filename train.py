@@ -43,7 +43,7 @@ checkpoint = None #'checkpoints/BEST_checkpoint.pth.tar'  # path to checkpoint, 
 
 # Tensorboard logging
 log_img_freq = 1 if test else 5 # print results every log_img_freq epochs
-tensorboard_folder = 'runs/test' if test else f'runs/size_{img_size}_fine_tune_{fine_tune_encoder}'
+tensorboard_folder = 'runs/test' if test else f'runs/size_{img_size}_fine_tune_{fine_tune_encoder}'.replace(' ', '')
 
 writer = SummaryWriter(tensorboard_folder)
 
