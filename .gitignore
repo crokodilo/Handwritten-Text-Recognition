@@ -1,6 +1,6 @@
 runs/
 *.tar
 checkpoints
-__pycache__
-.ipynb*
+__pycache__/
+.ipynb*/
 
