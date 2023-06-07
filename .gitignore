@@ -1,4 +1,4 @@
-runs/
+runs/*
 !runs/'size_(80, 900)_fine_tune_True'
 *.tar
 checkpoints/
