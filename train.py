@@ -16,7 +16,7 @@ test = False
 
 # Data parameters
 data_folder = '../datasets/iam'  # folder with data files saved by create_input_files.py
-img_size = (80, 900)  #(height, width)
+img_size = (90, 900)  #(height, width)
 
 # Model parameters
 emb_dim = 512  # dimension of word embeddings
@@ -273,7 +273,6 @@ def validate(val_loader, encoder, decoder, criterion):
     start = time.time()
 
     # explicitly disable gradient calculation to avoid CUDA memory error
-    # solves the issue #57
     with torch.no_grad():
         # Batches
         for i, (imgs, caps, caplens) in enumerate(val_loader):

@@ -185,7 +185,7 @@ def visualize_att(image_path, seq, alphas, tokenizer, smooth=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Show, Attend, and Tell - Tutorial - Generate Caption')
 
-    parser.add_argument('--img', '-i', default='test-imgs/test2.png', help='path to image')
+    parser.add_argument('--img', '-i', default='test-imgs/valid1.png', help='path to image')
     parser.add_argument('--model', '-m', default='BEST_checkpoint.pth.tar', help='path to model')
     parser.add_argument('--tokenizer_directory', '-td', default='tokenizer/',  help='path to tokenizer')
     parser.add_argument('--beam_size', '-b', default=5, type=int, help='beam size for beam search')
