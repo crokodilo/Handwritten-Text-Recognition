@@ -1,2 +1,4 @@
 pyspark
 transformers
+scikit-image
+torchvision

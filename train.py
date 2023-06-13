@@ -15,8 +15,8 @@ from plot import caption_image_beam_search, visualize_att
 test = False
 
 # Data parameters
-data_folder = '../datasets/iam'  # folder with data files saved by create_input_files.py
-img_size = (90, 900)  #(height, width)
+data_folder = '../datasets'  # folder with data files saved by create_input_files.py
+img_size = (85, 900)  #(height, width)
 
 # Model parameters
 emb_dim = 512  # dimension of word embeddings
