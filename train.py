@@ -16,9 +16,10 @@ test = False
 
 # Data parameters
 data_folder = '../datasets/iam'  # folder with data files saved by create_input_files.py
-img_size = (90, 900)  #(height, width)
+img_size = (80, 900)  #(height, width)
 
 # Model parameters
+encoded_image_size = (14, 14) # dimension of image encoded
 emb_dim = 512  # dimension of word embeddings
 attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
@@ -28,12 +29,15 @@ cudnn.benchmark = True  # set to true only if inputs to model are fixed size; ot
 
 # Training parameters
 start_epoch = 0
-epochs = 120  # number of epochs to train for (if early stopping is not triggered)
+epochs = 200  # number of epochs to train for (if early stopping is not triggered)
 epochs_since_improvement = 0  # keeps track of number of epochs since there's been an improvement in validation top5acc
+max_epochs_without_improvement = 100 #default 20
+decay_lr_after = 20 #default 8
 batch_size = 32
-workers = 40  # for data-loading; right now, only 1 works with h5py
+workers = 20  # for data-loading; right now, only 1 works with h5py
 encoder_lr = 1e-4  # learning rate for encoder if fine-tuning
 decoder_lr = 4e-4  # learning rate for decoder
+wd = 1e-4          # weight_decay for encoder/decoder
 grad_clip = 5.  # clip gradients at an absolute value of
 alpha_c = 1.  # regularization parameter for 'doubly stochastic attention', as in the paper
 best_top5acc = 0.  # top5acc score right now
@@ -41,11 +45,22 @@ print_freq = 10  # print training/validation stats every __ batches
 fine_tune_encoder = True  # fine-tune encoder?
 checkpoint = None #'checkpoints/BEST_checkpoint.pth.tar'  # path to checkpoint, None if none
 
-# Tensorboard logging
-log_img_freq = 1 if test else 5 # print results every log_img_freq epochs
-tensorboard_folder = 'runs/test' if test else f'runs/size_{img_size}_fine_tune_{fine_tune_encoder}'.replace(' ', '')
+which_resnet = 'resnet152'
 
-writer = SummaryWriter(tensorboard_folder)
+# Tensorboard logging
+log_img_freq = 1 if test else 10 # print results every log_img_freq epochs
+main_folder = 'runs/test' if test else f'runs/wd_{wd}/size_{img_size}/{which_resnet}/fine_tune_{fine_tune_encoder}/encoded_size_{encoded_image_size}'.replace(' ', '')
+
+version_idx = 0
+version_folder = lambda x: os.path.join(main_folder, f'version_{x}')
+mkdir(version_folder(version_idx))
+
+while not os.listdir(version_folder(version_idx)) == []:
+    version_idx += 1
+    mkdirs(version_folder(version_idx))
+
+
+writer = SummaryWriter(version_folder(version_idx))
 
 def main():
     """
@@ -67,11 +82,11 @@ def main():
                                        vocab_size=len(tokenizer),
                                        dropout=dropout)
         decoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, decoder.parameters()),
-                                             lr=decoder_lr)
-        encoder = Encoder()
-        encoder.fine_tune(fine_tune_encoder)
+                                             lr=decoder_lr, weight_decay=wd)
+        encoder = Encoder(which_resnet, encoded_image_size)
+
         encoder_optimizer = torch.optim.Adam(params=filter(lambda p: p.requires_grad, encoder.parameters()),
-                                             lr=encoder_lr) if fine_tune_encoder else None
+                                             lr=encoder_lr, weight_decay=wd) if fine_tune_encoder else None
 
     else:
         checkpoint = torch.load(checkpoint)
@@ -113,9 +128,9 @@ def main():
     for epoch in range(start_epoch, epochs):
 
         # Decay learning rate if there is no improvement for 8 consecutive epochs, and terminate training after 20
-        if epochs_since_improvement == 20:
+        if epochs_since_improvement == max_epochs_without_improvement:
             break
-        if epochs_since_improvement > 0 and epochs_since_improvement % 8 == 0:
+        if epochs_since_improvement > 0 and epochs_since_improvement % decay_lr_after == 0:
             adjust_learning_rate(decoder_optimizer, 0.8)
             if fine_tune_encoder:
                 adjust_learning_rate(encoder_optimizer, 0.8)

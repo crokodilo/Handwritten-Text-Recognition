@@ -8,10 +8,8 @@ import argparse
 from PIL import Image
 from transformers import RobertaTokenizerFast
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-def caption_image_beam_search(encoder, decoder, image_path, tokenizer, transform, beam_size=3):
+def caption_image_beam_search(encoder, decoder, image_path, tokenizer, transform, device, beam_size=3):
     """
     Reads an image and captions it with beam search.
 
@@ -189,10 +187,13 @@ if __name__ == '__main__':
     parser.add_argument('--model', '-m', default='BEST_checkpoint.pth.tar', help='path to model')
     parser.add_argument('--tokenizer_directory', '-td', default='tokenizer/',  help='path to tokenizer')
     parser.add_argument('--beam_size', '-b', default=5, type=int, help='beam size for beam search')
+    parser.add_argument('--device', '-d', default=0, type=int, help='device for inference')
     parser.add_argument('--dont_smooth', dest='smooth', action='store_true', help='do not smooth alpha overlay')
 
     args = parser.parse_args()
-
+    
+    device = args.device
+    
     # Load model
     checkpoint = torch.load(args.model, map_location=str(device))
     decoder = checkpoint['decoder']
@@ -202,6 +203,10 @@ if __name__ == '__main__':
     encoder = encoder.to(device)
     encoder.eval()
 
+
+    input_size = (80, 900)
+
+
     # Read word map
     tokenizer = RobertaTokenizerFast.from_pretrained('tokenizer/')
     
@@ -210,12 +215,15 @@ if __name__ == '__main__':
     totensor = transforms.ToTensor()
     normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5],
                                      std=[0.229, 0.224, 0.225])
-    resize = transforms.Resize((256,256))
+    resize = transforms.Resize(input_size)
 
     transform = transforms.Compose([resize, totensor, normalize])
 
     # Encode, decode with attention and beam search
     seq, alphas = caption_image_beam_search(encoder, decoder, args.img, tokenizer, transform, args.beam_size)
+
+    decoded_sentence = tokenizer.decode([i for i in seq if i not in special_tokens])
+    print(decoded_sentence)
 
     # Visualize caption and attention of best sequence
     fig = visualize_att(args.img, seq, alphas, tokenizer, args.smooth)

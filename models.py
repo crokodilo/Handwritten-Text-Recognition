@@ -10,20 +10,28 @@ class Encoder(nn.Module):
     Encoder.
     """
 
-    def __init__(self, encoded_image_size=14):
+    def __init__(self, which_resnet, encoded_image_size = 14, fine_tune = True):
         super(Encoder, self).__init__()
-        self.enc_image_size = encoded_image_size
-
-        resnet = torchvision.models.resnet101(pretrained=True)  # pretrained ImageNet ResNet-101
-
+        if isinstance(encoded_image_size, tuple):
+            self.enc_image_size = encoded_image_size
+        else:
+            self.enc_image_size = (encoded_image_size, encoded_image_size)
+        
+        if which_resnet == 'resnet101':
+            resnet = torchvision.models.resnet101(weights=torchvision.models.ResNet101_Weights.DEFAULT)  # pretrained ImageNet ResNet-101
+        elif which_resnet == 'resnet152':
+            resnet = torchvision.models.resnet152(weights=torchvision.models.ResNet152_Weights.DEFAULT)
+        else:
+            raise TypeError('Unrecognized model name.')
+        
         # Remove linear and pool layers (since we're not doing classification)
         modules = list(resnet.children())[:-2]
         self.resnet = nn.Sequential(*modules)
 
         # Resize image to fixed size to allow input images of variable size
-        self.adaptive_pool = nn.AdaptiveAvgPool2d((encoded_image_size, encoded_image_size))
+        self.adaptive_pool = nn.AdaptiveAvgPool2d(self.enc_image_size)
 
-        self.fine_tune()
+        self.fine_tune(fine_tune)
 
     def forward(self, images):
         """
@@ -192,7 +200,7 @@ class DecoderWithAttention(nn.Module):
         decode_lengths = (caption_lengths - 1).tolist()
 
         # Create tensors to hold word prediction scores and alphas
-        #TODO they initialize with zeros because their <pad> token is 0? check this
+        
         predictions = torch.zeros(batch_size, max(decode_lengths), vocab_size).to(device)
         alphas = torch.zeros(batch_size, max(decode_lengths), num_pixels).to(device)
 
