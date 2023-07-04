@@ -13,6 +13,7 @@ from torch.utils.tensorboard import SummaryWriter
 from plot import caption_image_beam_search, visualize_att
 
 test = False
+gpu = 0
 
 # Data parameters
 data_folder = '../datasets'  # folder with data files saved by create_input_files.py
@@ -24,7 +25,7 @@ emb_dim = 512  # dimension of word embeddings
 attention_dim = 512  # dimension of attention linear layers
 decoder_dim = 512  # dimension of decoder RNN
 dropout = 0.5
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
+device = torch.device(f"cuda{gpu}" if torch.cuda.is_available() else "cpu")  # sets device for model and PyTorch tensors
 cudnn.benchmark = True  # set to true only if inputs to model are fixed size; otherwise lot of computational overhead
 
 # Training parameters
@@ -158,7 +159,7 @@ def main():
         if epoch % log_img_freq == 0:
             for img_path in [x for x in os.listdir('test-imgs/') if x.endswith('.png')]:
                 full_path = os.path.join('test-imgs', img_path)
-                seq, alphas = caption_image_beam_search(encoder, decoder, full_path, tokenizer, transform, 5)
+                seq, alphas = caption_image_beam_search(encoder, decoder, full_path, tokenizer, transform, device, 5)
                 writer.add_figure(img_path, visualize_att(full_path, seq, alphas, tokenizer), epoch)
 
 

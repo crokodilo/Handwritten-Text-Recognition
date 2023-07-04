@@ -220,7 +220,7 @@ if __name__ == '__main__':
     transform = transforms.Compose([resize, totensor, normalize])
 
     # Encode, decode with attention and beam search
-    seq, alphas = caption_image_beam_search(encoder, decoder, args.img, tokenizer, transform, args.beam_size)
+    seq, alphas = caption_image_beam_search(encoder, decoder, args.img, tokenizer, transform, device, args.beam_size)
 
     decoded_sentence = tokenizer.decode([i for i in seq if i not in special_tokens])
     print(decoded_sentence)
