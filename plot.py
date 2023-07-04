@@ -7,6 +7,7 @@ import matplotlib.cm as cm
 import argparse
 from PIL import Image
 from transformers import RobertaTokenizerFast
+import skimage.transform
 
 
 def caption_image_beam_search(encoder, decoder, image_path, tokenizer, transform, device, beam_size=3):
@@ -149,7 +150,6 @@ def visualize_att(image_path, seq, alphas, tokenizer, smooth=False):
     :param tokenizer: tokenizer
     :param smooth: smooth weights?
     """
-    import skimage.transform
     
     image = Image.open(image_path)
     a, b = 14*45, 14*7

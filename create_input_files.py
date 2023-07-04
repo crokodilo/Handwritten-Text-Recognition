@@ -3,7 +3,7 @@ import numpy as np
 
 if __name__ == '__main__':
     # Create train valid and test folders
-    data_path= '../datasets/iam/'
+    data_path= '../datasets/'
 
     if not os.path.exists(os.path.join(data_path, 'imgs')):
 

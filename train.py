@@ -15,7 +15,7 @@ from plot import caption_image_beam_search, visualize_att
 test = False
 
 # Data parameters
-data_folder = '../datasets/iam'  # folder with data files saved by create_input_files.py
+data_folder = '../datasets'  # folder with data files saved by create_input_files.py
 img_size = (80, 900)  #(height, width)
 
 # Model parameters
